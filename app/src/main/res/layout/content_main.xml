@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="io.github.quotecc.subtasks.MainActivity"
+    tools:showIn="@layout/app_bar_main">
+
+    <!-- This is where the content for the main act goes -->
+
+    <android.support.v4.view.ViewPager
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id = "@+id/pager">
+
+        <android.support.v4.view.PagerTitleStrip
+            android:id="@+id/pager_title_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="#33b5e5"
+            android:textColor="#fff"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp" />
+
+
+    </android.support.v4.view.ViewPager>
+
+
+</android.support.constraint.ConstraintLayout>
