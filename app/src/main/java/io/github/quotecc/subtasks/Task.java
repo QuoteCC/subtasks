@@ -1,12 +1,42 @@
 package io.github.quotecc.subtasks;
 
+import android.util.Log;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
  * Created by cCorliss on 5/1/17.
  */
 
-public class Task {
+public class Task implements Comparable<Task> {
+
+    //ID|Content|Due|Note|Parent
+
+    private int id;
+    private String content;
+    private Date due;
+    private String note;
+    private int parent;
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd-yyyy 'at' HH:mm");
+
+    public Task(){}
+
+    public Task(int id, String content, String due, String note, int parent){
+        this.id = id;
+        this.content = content;
+        try {
+            this.due = simpleDateFormat.parse(due);
+        }
+        catch (ParseException p){
+            Log.d("parse", "FAILED TO PARSE DATE: " + due);
+        }
+        this.note = note;
+        this.parent = parent;
+
+    }
+
     public int getId() {
         return id;
     }
@@ -23,12 +53,15 @@ public class Task {
         this.content = content;
     }
 
-    public String getDue() {
+    public Date getDue() {
         return due;
     }
+    public String getDueS(){
+        return simpleDateFormat.format(due.getTime());
+    }
 
-    public void setDue(String due) {
-        this.due = due;
+    public void setDue(String due) throws ParseException {
+        this.due = simpleDateFormat.parse(due);
     }
 
     public String getNote() {
@@ -46,25 +79,18 @@ public class Task {
     public void setParent(int parent) {
         this.parent = parent;
     }
-    //ID|Content|Due|Note|Parent
 
-    private int id;
-    private String content;
-    private String due;
-    private String note;
-    private int parent;
+    @Override
+    public int compareTo(Task t){ //for use in sorting all tasks into by date form
 
-    public Task(){}
-
-    public Task(int id, String content, String due, String note, int parent){
-        this.id = id;
-        this.content = content;
-        this.due = due;
-        this.note = note;
-        this.parent = parent;
+        return due.compareTo(t.getDue());
 
     }
-    
+
+
+
+
+
 
 
 }
