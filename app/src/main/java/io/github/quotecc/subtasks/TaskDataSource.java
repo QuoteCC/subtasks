@@ -57,10 +57,10 @@ public class TaskDataSource {
         return tasks;
     }
 
-    public List<Task> getSubTasks(Task t){
+    public List<Task> getSubTasks(int parId){
         //Pass this 0 to get all top level tasks
         List<Task> tasks = new ArrayList<Task>();
-        String[] args = {t.getId() + ""};
+        String[] args = {parId + ""};
         Cursor cursor = db.query(DBHelper.TABLE_NAME, allColumns, DBHelper.COLUMN_NAME_PARENT + " = ?", args, null, null, null);
         if (cursor.moveToFirst()){
             while (!cursor.isAfterLast()){
@@ -69,6 +69,7 @@ public class TaskDataSource {
                 cursor.moveToNext();
             }
         }
+        Collections.sort(tasks);//Sort by Date for display
         return tasks;
 
     }

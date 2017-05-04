@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by cCorliss on 4/24/17.
@@ -21,6 +22,9 @@ import java.util.ArrayList;
 public class MainView extends Fragment {
     Context actMain;
     ListView lv;
+    String addT = "Add a Task";
+    int curId;
+    TaskDataSource tds;
     String[] because = {"TEST1", "TEST2", "TEST3"};
 
     @Override
@@ -37,6 +41,15 @@ public class MainView extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
         View view = inflater.inflate(R.layout.main_view, container, false); //the null stands in for the layout file
+
+        curId = getArguments().getInt("id");
+
+        tds = new TaskDataSource(getContext());
+        tds.open();
+        List<Task> currTasks = tds.getAllTasks(curId);
+        currTasks.add(new Task(addT)); //blank task with just the text add a task for use as button
+
+
 
         lv = (ListView) view.findViewById(R.id.mainContent);
         ArrayAdapter<String> adapt = new ArrayAdapter<String>(actMain, android.R.layout.simple_list_item_1, because);

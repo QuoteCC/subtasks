@@ -12,10 +12,12 @@ import android.support.v4.app.FragmentPagerAdapter;
 
 public class PagerThing extends FragmentPagerAdapter {
     Context context;
+    int curId;
 
-    public PagerThing(FragmentManager fm, Context context){
+    public PagerThing(FragmentManager fm, Context context, int curId){
         super(fm);
         this.context = context;
+        this.curId = curId;
     }
 
     @Override
@@ -28,6 +30,7 @@ public class PagerThing extends FragmentPagerAdapter {
 
         Bundle args = new Bundle();
         args.putInt("page_position", index +1);
+        args.putInt("id", curId);
 
 
         switch (index){

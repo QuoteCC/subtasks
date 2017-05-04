@@ -22,6 +22,11 @@ public class Task implements Comparable<Task> {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd-yyyy 'at' HH:mm");
 
     public Task(){}
+    public Task(String content){ // a method for creating a task that simply has words in it, no actual content
+        id = -1;
+        this.content = content;
+        parent = -1;
+    }
 
     public Task(int id, String content, String due, String note, int parent){
         this.id = id;
@@ -56,12 +61,15 @@ public class Task implements Comparable<Task> {
     public Date getDue() {
         return due;
     }
-    public String getDueS(){
+    public String getDueS(){ //this allows for storing and formatting dates off consistent strings
         return simpleDateFormat.format(due.getTime());
     }
 
     public void setDue(String due) throws ParseException {
         this.due = simpleDateFormat.parse(due);
+    }
+    public void setDue(Date due){ //overloaded method to allow for multiple methods of setting
+        this.due = due;
     }
 
     public String getNote() {
@@ -85,6 +93,10 @@ public class Task implements Comparable<Task> {
 
         return due.compareTo(t.getDue());
 
+    }
+    @Override
+    public String toString(){
+        return getContent();
     }
 
 
