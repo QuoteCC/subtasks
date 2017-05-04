@@ -1,5 +1,7 @@
 package io.github.quotecc.subtasks;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentActivity;
@@ -26,7 +28,16 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        pT = new PagerThing(getSupportFragmentManager(), this);
+        int bParent = getIntent().getIntExtra("parent", 0);
+
+
+        SharedPreferences s = getSharedPreferences("index", Context.MODE_PRIVATE);
+        if (!s.contains("curId")){
+            SharedPreferences.Editor e = s.edit();
+            e.putInt("curId", 1);
+        }
+
+        pT = new PagerThing(getSupportFragmentManager(), this, bParent);
         swipes = (ViewPager) findViewById(R.id.pager);
         swipes.setAdapter(pT);
 

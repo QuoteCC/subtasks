@@ -46,7 +46,7 @@ public class MainView extends Fragment {
 
         tds = new TaskDataSource(getContext());
         tds.open();
-        List<Task> currTasks = tds.getAllTasks(curId);
+        final List<Task> currTasks = tds.getAllTasks(curId);
         currTasks.add(new Task(addT)); //blank task with just the text add a task for use as button
 
 
@@ -57,6 +57,13 @@ public class MainView extends Fragment {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (position == currTasks.size()-1){ //means that its our dummy task
+
+                }
+                else{
+
+                }
+
 
                 //handles short click --> opens full view of task
 
