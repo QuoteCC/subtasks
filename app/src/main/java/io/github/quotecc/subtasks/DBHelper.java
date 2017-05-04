@@ -22,11 +22,11 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     private static final String DB_CREATE = "create table "+ TABLE_NAME +
-            "( "+ COLUMN_NAME_ID + " integer not null, " +
+            "( "+ COLUMN_NAME_ID + " text not null, " +
             COLUMN_NAME_CONTENT + " text not null, "+
             COLUMN_NAME_DUE + " text, " +
             COLUMN_NAME_NOTE + " text, " +
-            COLUMN_NAME_PARENT + " integer not null" + ");";
+            COLUMN_NAME_PARENT + " text not null" + ");";
 
 
     public DBHelper(Context context){
