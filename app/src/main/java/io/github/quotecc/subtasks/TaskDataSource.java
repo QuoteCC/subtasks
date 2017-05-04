@@ -36,12 +36,19 @@ public class TaskDataSource {
         dbHelper.close();
     }
 
-    public List<Task> getAllTasks(){
+    public List<Task> getAllTasks(int parent){
+        //Changing this to take a parent, so that it will recursively find all beneath it
+        //all top level tasks have a parent of 0, so passing 0 gets all tasks
+        String[] args = {parent + ""};
         List<Task> tasks = new ArrayList<Task>();
-        Cursor cursor = db.query(DBHelper.TABLE_NAME, allColumns, null, null, null, null, null);
+        Cursor cursor = db.query(DBHelper.TABLE_NAME, allColumns, DBHelper.COLUMN_NAME_PARENT + " = ?", args, null, null, null);
         cursor.moveToFirst();
         while(!cursor.isAfterLast()){
             Task t = cursorToTask(cursor);
+            List<Task> l = getAllTasks(t.getParent());// for each entry found, find all its children recursively
+            for (Task temp : l){
+                tasks.add(temp);
+            }
             tasks.add(t);
             cursor.moveToNext();
         }
@@ -51,6 +58,7 @@ public class TaskDataSource {
     }
 
     public List<Task> getSubTasks(Task t){
+        //Pass this 0 to get all top level tasks
         List<Task> tasks = new ArrayList<Task>();
         String[] args = {t.getId() + ""};
         Cursor cursor = db.query(DBHelper.TABLE_NAME, allColumns, DBHelper.COLUMN_NAME_PARENT + " = ?", args, null, null, null);
@@ -64,6 +72,8 @@ public class TaskDataSource {
         return tasks;
 
     }
+
+
 
     public int updateTask(Task t){ //does not touch parent or id, as these will not be changed by any updates
         ContentValues c = new ContentValues();
@@ -87,6 +97,21 @@ public class TaskDataSource {
         c.put(DBHelper.COLUMN_NAME_PARENT, "" + t.getParent());
 
         long insertId = db.insert(DBHelper.TABLE_NAME,null,c);
+
+    }
+
+    public void deleteTask(Task t){
+        String[] args = {t.getId()+""};
+        //MUST RECURSIVELY DELETE ALL SUBTASKS CAUSE will be dumb otherwise
+        Cursor cursor = db.query(DBHelper.TABLE_NAME, allColumns, DBHelper.COLUMN_NAME_PARENT + " = ?", args, null, null, null);
+        if (cursor.moveToFirst()){
+            while (!cursor.isAfterLast()){
+                Task task = cursorToTask(cursor);
+                deleteTask(task); //cause recursion
+                cursor.moveToNext();
+            }
+        }
+        db.delete(DBHelper.TABLE_NAME, DBHelper.COLUMN_NAME_ID + " = ?", args);
 
     }
 
