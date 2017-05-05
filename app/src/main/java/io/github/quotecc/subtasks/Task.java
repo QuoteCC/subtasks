@@ -19,7 +19,7 @@ public class Task implements Comparable<Task> {
     private Date due;
     private String note;
     private int parent;
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd-yyyy 'at' HH:mm");
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd-yyyy 'at' hh:mm a");
 
     public Task(){}
     public Task(String content){ // a method for creating a task that simply has words in it, no actual content
