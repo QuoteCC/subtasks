@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity
         if (!s.contains("curId")){
             SharedPreferences.Editor e = s.edit();
             e.putInt("curId", 1);
+            e.apply();
         }
 
         pT = new PagerThing(getSupportFragmentManager(), this, bParent);

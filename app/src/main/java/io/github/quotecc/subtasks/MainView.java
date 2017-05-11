@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -32,11 +33,13 @@ import java.util.List;
 public class MainView extends Fragment {
     Context actMain;
 
+    public ArrayList<Task> items = new ArrayList<Task>();
+
     ListView lv;
     String addT = "Add a Task";
     int curId;
     TaskDataSource tds;
-    String[] because = {"TEST1", "TEST2", "TEST3"};
+    String[] because = {"TEST1", "TEST2", "TEST3"}; //old test array
 
     @Override
     public void onAttach(Context act){
@@ -64,7 +67,8 @@ public class MainView extends Fragment {
 
         lv = (ListView) view.findViewById(R.id.mainContent);
         lv.setItemsCanFocus(true);
-        ArrayAdapter<String> adapt = new ArrayAdapter<String>(actMain, android.R.layout.simple_list_item_1, because);
+        //ArrayAdapter<String> adapt = new ArrayAdapter<String>(actMain, android.R.layout.simple_list_item_1, because);
+        custAdapt adapt = new custAdapt(items);
         lv.setAdapter(adapt);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
@@ -74,6 +78,9 @@ public class MainView extends Fragment {
                 }
                 else{
 
+                    Intent i = new Intent(getContext(), MainActivity.class);
+                    int par = items.get(position).getId();
+                    i.putExtra("parent", par);
                 }
 
 
@@ -98,7 +105,7 @@ public class MainView extends Fragment {
 
     public class custAdapt extends BaseAdapter{
         private LayoutInflater layInf;
-        public ArrayList<Task> items = new ArrayList<Task>();
+
         Calendar c = Calendar.getInstance();
         int currPos = 0;
 
@@ -171,7 +178,31 @@ public class MainView extends Fragment {
                 holder = new ViewHold();
                 convertView = layInf.inflate(R.layout.lv_custom,null);
                 holder.txtEd = (EditText) convertView.findViewById(R.id.noteEdit);
+                holder.txtEd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    @Override
+                    public void onFocusChange(View v, boolean hasFocus) {
+                        if (!hasFocus){
+                            String curr = holder.txtEd.getText().toString();
+                            items.get(pos).setContent(curr);
+                            holder.txtVw.setText(curr);
+                            holder.txtEd.setVisibility(View.GONE);
+                            holder.txtVw.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
                 holder.txtVw = (TextView) convertView.findViewById(R.id.lvTxt);
+                holder.txtVw.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        holder.txtEd.setVisibility(View.VISIBLE);
+                        holder.txtVw.setVisibility(View.GONE);
+                        holder.txtEd.setText(holder.txtVw.getText());
+                        if (holder.txtEd.requestFocus()) {
+                            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                        }
+
+                    }
+                });
                 holder.bttn = (Button) convertView.findViewById(R.id.duePick);
                 holder.bttn.setOnClickListener(new View.OnClickListener() {
                     @Override
