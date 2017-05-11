@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
@@ -62,7 +63,9 @@ public class MainView extends Fragment {
         tds.open();
         items = tds.getSubTasks(curId);
         tds.close();
-        items.add(new Task(addT)); //blank task with just the text add a task for use as button
+        SharedPreferences s = getContext().getSharedPreferences("index", Context.MODE_PRIVATE);
+        int indx = s.getInt("curId", 0);
+        items.add(new Task(addT, indx)); //blank task with just the text add a task for use as button
 
 
 
@@ -163,7 +166,7 @@ public class MainView extends Fragment {
 
                 holder.bttn = (Button) convertView.findViewById(R.id.duePick);
                 setButtListeners(holder);
-                
+
                 convertView.setTag(holder);
             }
             else{
@@ -254,7 +257,14 @@ public class MainView extends Fragment {
                             hold.txtVw.setText(curr);
                             hold.bttn.setVisibility(View.VISIBLE);
                             if (pos == items.size()-1){
-                                items.add(new Task(addT));
+
+                                SharedPreferences shr  = getContext().getSharedPreferences("index", Context.MODE_PRIVATE);
+                                int got = shr.getInt("curId", 0);
+                                SharedPreferences.Editor shrE = shr.edit();
+                                shrE.putInt("curId", got+1);
+                                shrE.apply();
+
+                                items.add(new Task(addT, got+1));
                                 tds.insertTask(items.get(pos));
                                 tds.close();
                             }
@@ -293,7 +303,7 @@ public class MainView extends Fragment {
                     return t;
                 }
             }
-            return new Task(addT);
+            return new Task(addT, -1);
 
         }
 

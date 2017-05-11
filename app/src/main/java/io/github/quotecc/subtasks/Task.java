@@ -14,7 +14,7 @@ public class Task implements Comparable<Task> {
 
     //ID|Content|Due|Note|Parent
 
-    private int id;
+    private int id = 0;
     private String content;
     private Date due;
     private String note;
@@ -22,8 +22,8 @@ public class Task implements Comparable<Task> {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd-yyyy 'at' hh:mm a");
 
     public Task(){}
-    public Task(String content){ // a method for creating a task that simply has words in it, no actual content
-        id = -1;
+    public Task(String content, int id){ // a method for creating a task that simply has words in it, no actual content
+        this.id = id;
         this.content = content;
         parent = -1;
     }
