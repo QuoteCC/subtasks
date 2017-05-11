@@ -69,6 +69,7 @@ public class TaskDataSource {
                 cursor.moveToNext();
             }
         }
+        cursor.close();
         Collections.sort(tasks);//Sort by Date for display
         return tasks;
 

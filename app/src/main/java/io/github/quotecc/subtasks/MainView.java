@@ -37,7 +37,7 @@ public class MainView extends Fragment {
 
     ListView lv;
     String addT = "Add a Task";
-    int curId;
+    int curId;//level of current thing
     TaskDataSource tds;
     String[] because = {"TEST1", "TEST2", "TEST3"}; //old test array
 
@@ -60,7 +60,8 @@ public class MainView extends Fragment {
 
         tds = new TaskDataSource(getContext());
         tds.open();
-        final List<Task> currTasks = tds.getAllTasks(curId);
+        final List<Task> currTasks = tds.getSubTasks(curId);
+        tds.close();
         currTasks.add(new Task(addT)); //blank task with just the text add a task for use as button
 
 
@@ -70,7 +71,7 @@ public class MainView extends Fragment {
         //ArrayAdapter<String> adapt = new ArrayAdapter<String>(actMain, android.R.layout.simple_list_item_1, because);
         custAdapt adapt = new custAdapt(items);
         lv.setAdapter(adapt);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        /*lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (position == currTasks.size()-1){ //means that its our dummy task
@@ -87,8 +88,8 @@ public class MainView extends Fragment {
                 //handles short click --> opens full view of task
 
             }
-        });
-        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+        });*/
+        /*lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
@@ -97,7 +98,7 @@ public class MainView extends Fragment {
 
                 return true;
             }
-        });
+        });*/
 
         return view;
 
@@ -151,55 +152,52 @@ public class MainView extends Fragment {
         public View getView(final int pos, View convertView, ViewGroup parent){
             final ViewHold holder;
 
-            /*final TimePickerDialog.OnTimeSetListener ts = new TimePickerDialog.OnTimeSetListener() {
-                @Override
-                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                    c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                    c.set(Calendar.MINUTE, minute);
-
-                }
-            };
-
-            final DatePickerDialog.OnDateSetListener d = new DatePickerDialog.OnDateSetListener() {
-                @Override
-                public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                    c.set(Calendar.YEAR, year);
-                    c.set(Calendar.MONTH, month);
-                    c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-
-                    new TimePickerDialog(getContext(), ts, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), false);
-
-                }
-            };
-            */
-
 
             if (convertView == null){
                 holder = new ViewHold();
                 convertView = layInf.inflate(R.layout.lv_custom,null);
                 holder.txtEd = (EditText) convertView.findViewById(R.id.noteEdit);
-                holder.txtEd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                    @Override
-                    public void onFocusChange(View v, boolean hasFocus) {
-                        if (!hasFocus){
-                            String curr = holder.txtEd.getText().toString();
-                            items.get(pos).setContent(curr);
-                            holder.txtVw.setText(curr);
-                            holder.txtEd.setVisibility(View.GONE);
-                            holder.txtVw.setVisibility(View.VISIBLE);
-                        }
-                    }
-                });
+
                 holder.txtVw = (TextView) convertView.findViewById(R.id.lvTxt);
                 holder.txtVw.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        holder.txtEd.setVisibility(View.VISIBLE);
-                        holder.txtVw.setVisibility(View.GONE);
-                        holder.txtEd.setText(holder.txtVw.getText());
-                        if (holder.txtEd.requestFocus()) {
-                            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                        if (pos == items.size()-1){
+                            holder.txtEd.setVisibility(View.VISIBLE);
+                            holder.txtVw.setVisibility(View.GONE);
+                            //holder.txtEd.setText(holder.txtVw.getText());
+                            holder.txtEd.setText("");
+                            if (holder.txtEd.requestFocus()) {
+                                getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                            }
                         }
+                        else{
+
+                            Intent i = new Intent(getContext(), MainActivity.class);
+                            int par = items.get(pos).getId();
+                            i.putExtra("parent", par);
+
+                        }
+
+
+                    }
+                });
+                holder.txtVw.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (pos == items.size()-1){
+                            return false; //This means that it doesn't consume the onclick event, so would trigger the standard listener
+                        }
+                        else{
+                            holder.txtEd.setVisibility(View.VISIBLE);
+                            holder.txtVw.setVisibility(View.GONE);
+                            holder.txtEd.setText(holder.txtVw.getText());
+                            if (holder.txtEd.requestFocus()) {
+                                getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                            }
+                        }
+
+                        return true;
 
                     }
                 });
@@ -230,6 +228,35 @@ public class MainView extends Fragment {
             else{
                 holder.bttn.setVisibility(View.INVISIBLE);
             }
+            holder.txtEd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (!hasFocus){
+                        tds.open();
+                        String curr = holder.txtEd.getText().toString();
+                        if (curr != ""){
+                            items.get(pos).setContent(curr);
+                            holder.txtVw.setText(curr);
+                            holder.bttn.setVisibility(View.VISIBLE);
+                            if (pos == items.size()-1){
+                                items.add(new Task(addT));
+                                tds.insertTask(items.get(pos));
+                                tds.close();
+                            }
+                            else { //if it already exists then update, if new created, then insert
+                                tds.updateTask(items.get(pos));
+                                tds.close();
+                            }
+                        }
+                        holder.txtEd.setVisibility(View.GONE);
+                        holder.txtVw.setVisibility(View.VISIBLE);
+
+
+                        notifyDataSetChanged();
+
+                    }
+                }
+            });
             holder.txtEd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {

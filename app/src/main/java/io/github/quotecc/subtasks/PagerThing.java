@@ -21,8 +21,8 @@ public class PagerThing extends FragmentPagerAdapter {
     }
 
     @Override
-    public int getCount(){ //3 fragments
-        return 3;
+    public int getCount(){ //3 fragments though its 2 until I implement the third view
+        return 2;
     }
 
     @Override
@@ -39,11 +39,11 @@ public class PagerThing extends FragmentPagerAdapter {
                 MainView mv = new MainView();
                 mv.setArguments(args);
                 return mv;
-            case 1: //View by date LISTVIEW
+            /*case 1: //View by date LISTVIEW
                 MainView mv1 = new MainView();
                 mv1.setArguments(args);
-                return mv1;
-            case 2: //Notes TEXTVIEW (but has onclick to hide textview and show edit text)
+                return mv1;*/
+            case 1: //Notes TEXTVIEW (but has onclick to hide textview and show edit text)
                 MainView mv2 = new MainView();
                 mv2.setArguments(args);
                 return mv2;
