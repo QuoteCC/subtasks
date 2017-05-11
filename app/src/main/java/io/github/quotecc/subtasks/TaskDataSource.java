@@ -36,16 +36,16 @@ public class TaskDataSource {
         dbHelper.close();
     }
 
-    public List<Task> getAllTasks(int parent){
+    public ArrayList<Task> getAllTasks(int parent){
         //Changing this to take a parent, so that it will recursively find all beneath it
         //all top level tasks have a parent of 0, so passing 0 gets all tasks
         String[] args = {parent + ""};
-        List<Task> tasks = new ArrayList<Task>();
+        ArrayList<Task> tasks = new ArrayList<Task>();
         Cursor cursor = db.query(DBHelper.TABLE_NAME, allColumns, DBHelper.COLUMN_NAME_PARENT + " = ?", args, null, null, null);
         cursor.moveToFirst();
         while(!cursor.isAfterLast()){
             Task t = cursorToTask(cursor);
-            List<Task> l = getAllTasks(t.getParent());// for each entry found, find all its children recursively
+            ArrayList<Task> l = getAllTasks(t.getParent());// for each entry found, find all its children recursively
             for (Task temp : l){
                 tasks.add(temp);
             }
@@ -57,9 +57,9 @@ public class TaskDataSource {
         return tasks;
     }
 
-    public List<Task> getSubTasks(int parId){
+    public ArrayList<Task> getSubTasks(int parId){
         //Pass this 0 to get all top level tasks
-        List<Task> tasks = new ArrayList<Task>();
+        ArrayList<Task> tasks = new ArrayList<Task>();
         String[] args = {parId + ""};
         Cursor cursor = db.query(DBHelper.TABLE_NAME, allColumns, DBHelper.COLUMN_NAME_PARENT + " = ?", args, null, null, null);
         if (cursor.moveToFirst()){
