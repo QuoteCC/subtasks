@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,14 +67,24 @@ public class MainView extends Fragment {
         tds.close();
         SharedPreferences s = getContext().getSharedPreferences("index", Context.MODE_PRIVATE);
         int indx = s.getInt("curId", 0);
-        items.add(new Task(addT, indx)); //blank task with just the text add a task for use as button
+
+        if (curId != 0){
+            tds.open();
+            Task cur = tds.searchTask(curId);
+            tds.close();
+            getActivity().setTitle(cur.getContent());
+        }
+        else {
+            getActivity().setTitle("Main Tasks");
+        }
+        items.add(new Task(addT, indx, curId)); //blank task with just the text add a task for use as button
 
 
 
         lv = (ListView) view.findViewById(R.id.mainContent);
         lv.setItemsCanFocus(true);
         //ArrayAdapter<String> adapt = new ArrayAdapter<String>(actMain, android.R.layout.simple_list_item_1, items);
-        custAdapt adapt = new custAdapt(items);
+        custAdapt adapt = new custAdapt(items, getContext(), curId);
         lv.setAdapter(adapt);
         /*lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
@@ -108,95 +120,115 @@ public class MainView extends Fragment {
 
     }
 
-    public class custAdapt extends BaseAdapter{
+    public class custAdapt extends ArrayAdapter<Task>{
         private LayoutInflater layInf;
-
+        ArrayList<Task> currTasks;
+        final Context context;
         Calendar c = Calendar.getInstance();
         int currPos = 0;
+        int timeId = 0;
+        int parent = 0;
 
-        TimePickerDialog.OnTimeSetListener ts = new TimePickerDialog.OnTimeSetListener(){
-            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                c.set(Calendar.MINUTE, minute);
-                items.get(currPos).setDue(c.getTime());
-                notifyDataSetChanged();
-            }
-        };
-
-        DatePickerDialog.OnDateSetListener d = new DatePickerDialog.OnDateSetListener() {
+        class ViewHold{
+            EditText txtEd;
+            TextView txtVw;
+            TextView dataStor;
+            Button bttn;
             @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                c.set(Calendar.YEAR, year);
-                c.set(Calendar.MONTH, month);
-                c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                new TimePickerDialog(getContext(), ts, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), false).show();
+            public String toString(){
+                String s = txtVw.getText().toString() + "     " + dataStor.getText().toString();
+                return s;
+
             }
-        };
+        }
 
 
 
-        public custAdapt(ArrayList<Task> tasks){
-            layInf = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            items = tasks;
+
+
+        public custAdapt(ArrayList<Task> tasks, Context context, int par){
+            super(context, R.layout.lv_custom, tasks);
+            this.context = context;
+            parent = par;
+            layInf = LayoutInflater.from(context);
+            //layInf = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            currTasks = tasks;
             notifyDataSetChanged();
         }
 
+        @Override
         public int getCount(){
-            return items.size();
+            return currTasks.size();
         }
-
+        @Override
         public Task getItem(int pos){
-            return items.get(pos);
+            return currTasks.get(pos);
         }
-
+        @Override
         public long getItemId(int pos){
-            return items.get(pos).getId();
+            return currTasks.get(pos).getId();
         }
-
+        @Override
         public View getView( int pos, View convertView, ViewGroup parent){
-            ViewHold holder;
+            //Log.d("ITEM ERROR", currTasks.toString() + " \n" + pos);
+            Task t = currTasks.get(pos);
+
             if (convertView == null){
-                holder = new ViewHold();
+                final ViewHold holder = new ViewHold();
                 convertView = layInf.inflate(R.layout.lv_custom,null);
                 holder.txtEd = (EditText) convertView.findViewById(R.id.noteEdit);
                 holder.dataStor = (TextView) convertView.findViewById(R.id.store); //This is always gone, but stores the id of the current item
-                holder.dataStor.setText(items.get(pos).getId());
-                holder.txtVw = (TextView) convertView.findViewById(R.id.lvTxt);
-                setTVListeners(holder);
+                holder.dataStor.setText(currTasks.get(pos).getId() + "");
+                holder.txtVw = (TextView) convertView.findViewById(R.id.noteText);
+                holder.txtVw.setText(currTasks.get(pos).getContent());
+
+
 
                 holder.bttn = (Button) convertView.findViewById(R.id.duePick);
+
+                holder.bttn.setText(currTasks.get(pos).getDueS());
+                //Log.d("ITEM ERROR BEFORE", holder.toString());
+                setTVListeners(holder);
                 setButtListeners(holder);
+                setETListeners(holder);
+
+
+                holder.txtVw.setVisibility(View.VISIBLE);
+                if (!currTasks.get(pos).getContent().equals("Add a Task")){
+                    if (currTasks.get(pos).getDue() != null){
+                        holder.bttn.setText(currTasks.get(pos).getDueS());
+                    }
+                    else{
+                        holder.bttn.setText("Set Due?");
+                    }
+                }
+                else{
+                    holder.bttn.setVisibility(View.INVISIBLE);
+                }
+
+
 
                 convertView.setTag(holder);
             }
             else{
-                holder = (ViewHold) convertView.getTag();
+                ViewHold holder = (ViewHold) convertView.getTag();
             }
-            holder.txtVw.setText(items.get(pos).getContent());
-            holder.txtVw.setVisibility(View.VISIBLE);
-            if (!items.get(pos).getContent().equals("Add a Task")){
-                if (items.get(pos).getDue() != null){
-                    holder.bttn.setText(items.get(pos).getDueS());
-                }
-                else{
-                    holder.bttn.setText("Set Due?");
-                }
-            }
-            else{
-                holder.bttn.setVisibility(View.INVISIBLE);
-            }
-            setETListeners(holder);
+
+
+
             return convertView;
         }
 
         public void setTVListeners(final ViewHold hold){
+            //Log.d("ITEM ERROR AFT", hold.toString());
             hold.txtVw.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Log.d("EVENT", "Short Click");
                     String s = hold.dataStor.getText().toString(); //dataStor has the ID of the current item
                     int id = Integer.parseInt(s);
-                    int pos = items.indexOf(findTaskById(id));
-                    if (id == items.size()-1){
+                    int pos = currTasks.indexOf(findTaskById(id));
+                    if (pos == currTasks.size()-1){
                         hold.txtEd.setVisibility(View.VISIBLE);
                         hold.txtVw.setVisibility(View.GONE);
                         //holder.txtEd.setText(holder.txtVw.getText());
@@ -209,6 +241,7 @@ public class MainView extends Fragment {
 
                         Intent i = new Intent(getContext(), MainActivity.class);
                         i.putExtra("parent", id);
+                        getContext().startActivity(i);
 
                     }
 
@@ -220,8 +253,8 @@ public class MainView extends Fragment {
                 public boolean onLongClick(View v) {
                     String s = hold.dataStor.getText().toString(); //dataStor has the ID of the current item
                     int id = Integer.parseInt(s);
-                    int pos = items.indexOf(findTaskById(id));
-                    if (pos == items.size()-1){
+                    int pos = currTasks.indexOf(findTaskById(id));
+                    if (pos == currTasks.size()-1){
                         return false; //This means that it doesn't consume the onclick event, so would trigger the standard listener
                     }
                     else{
@@ -243,20 +276,68 @@ public class MainView extends Fragment {
         }
 
         public void setETListeners(final ViewHold hold){
-            hold.txtEd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            hold.txtEd.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    String s = hold.dataStor.getText().toString();
+                    int id = Integer.parseInt(s);
+                    Log.d("TASKS", currTasks.toString());
+                    Log.d("IDSSSS", id+"");
+                    Task t = findTaskById(id);
+                    int pos = currTasks.indexOf(t);
+                    String conts = hold.txtEd.getText().toString();
+
+                    if (!conts.equals(t.getContent()) && !conts.equals("")){
+                        tds.open();
+
+                        currTasks.get(pos).setContent(conts);
+                        hold.txtVw.setText(conts);
+                        hold.bttn.setVisibility(View.VISIBLE);
+                        if (pos == currTasks.size()-1){
+
+                            SharedPreferences shr  = getContext().getSharedPreferences("index", Context.MODE_PRIVATE);
+                            int got = shr.getInt("curId", 0);
+                            SharedPreferences.Editor shrE = shr.edit();
+                            shrE.putInt("curId", got+1);
+                            shrE.apply();
+
+                            currTasks.add(new Task(addT, got+1, parent));
+                            long l = tds.insertTask(currTasks.get(pos));
+                            Log.d("Insert ID", l + "");
+                            tds.close();
+                        }
+                        else { //if it already exists then update, if new created, then insert
+                            tds.updateTask(currTasks.get(pos));
+                            tds.close();
+                        }
+
+                        hold.txtEd.setVisibility(View.GONE);
+                        hold.txtVw.setVisibility(View.VISIBLE);
+
+
+                        notifyDataSetChanged();
+
+                    }
+
+
+                    return false;
+                }
+            });
+            /*hold.txtEd.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
                     String s = hold.dataStor.getText().toString();
                     int id = Integer.parseInt(s);
-                    int pos = items.indexOf(findTaskById(id));
+                    int pos = currTasks.indexOf(findTaskById(id));
                     if (!hasFocus){
+                        Log.d("FOCUS PROBS", "focus changing instantly");
                         tds.open();
                         String curr = hold.txtEd.getText().toString();
-                        if (curr != ""){
-                            items.get(pos).setContent(curr);
+                        if (!curr.equals("")){
+                            currTasks.get(pos).setContent(curr);
                             hold.txtVw.setText(curr);
                             hold.bttn.setVisibility(View.VISIBLE);
-                            if (pos == items.size()-1){
+                            if (pos == currTasks.size()-1){
 
                                 SharedPreferences shr  = getContext().getSharedPreferences("index", Context.MODE_PRIVATE);
                                 int got = shr.getInt("curId", 0);
@@ -264,12 +345,12 @@ public class MainView extends Fragment {
                                 shrE.putInt("curId", got+1);
                                 shrE.apply();
 
-                                items.add(new Task(addT, got+1));
-                                tds.insertTask(items.get(pos));
+                                currTasks.add(new Task(addT, got+1));
+                                tds.insertTask(currTasks.get(pos));
                                 tds.close();
                             }
                             else { //if it already exists then update, if new created, then insert
-                                tds.updateTask(items.get(pos));
+                                tds.updateTask(currTasks.get(pos));
                                 tds.close();
                             }
                         }
@@ -281,29 +362,74 @@ public class MainView extends Fragment {
 
                     }
                 }
-            });
+            });*/
         }
 
         public void setButtListeners(final ViewHold hold){
+            String s = hold.dataStor.getText().toString();
+            final int id = Integer.parseInt(s);
+            int pos = currTasks.indexOf(findTaskById(id));
+            final TimePickerDialog.OnTimeSetListener ts = new TimePickerDialog.OnTimeSetListener(){
+                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                    c.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                    c.set(Calendar.MINUTE, minute);
+                    findTaskById(id).setDue(c.getTime());
+                    Task t = findTaskById(id);
+                    tds.open();
+                    tds.updateTask(t);
+                    tds.close();
+                    hold.bttn.setText(t.getDueS());
+
+                    notifyDataSetChanged();
+                }
+            };
+
+            final DatePickerDialog.OnDateSetListener d = new DatePickerDialog.OnDateSetListener() {
+                @Override
+                public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                    c.set(Calendar.YEAR, year);
+                    c.set(Calendar.MONTH, month);
+                    c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                    new TimePickerDialog(getContext(), ts, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), false).show();
+                }
+            };
             hold.bttn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     String s = hold.dataStor.getText().toString();
                     int id = Integer.parseInt(s);
-                    int pos = items.indexOf(findTaskById(id));
-                    currPos = pos;
+                    int pos = currTasks.indexOf(findTaskById(id));
+
                     new DatePickerDialog(getContext(), d, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+                }
+            });
+            hold.bttn.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+
+                    String s = hold.dataStor.getText().toString();
+                    int id = Integer.parseInt(s);
+                    Task t = findTaskById(id);
+                    int pos = currTasks.indexOf(t);
+                    if (pos != currTasks.size()-1) {
+                        currTasks.remove(t);
+                        tds.open();
+                        tds.deleteTask(t);
+                        tds.close();
+                        notifyDataSetChanged();
+                    }
+                    return true;
                 }
             });
         }
 
         public Task findTaskById(int id){
-            for (Task t: items){
+            for (Task t: currTasks){
                 if (t.getId() == id){
                     return t;
                 }
             }
-            return new Task(addT, -1);
+            return new Task(addT, -1, parent);
 
         }
 
@@ -311,11 +437,6 @@ public class MainView extends Fragment {
 
 
     }
-    class ViewHold{
-        EditText txtEd;
-        TextView txtVw;
-        TextView dataStor;
-        Button bttn;
-    }
+
 
 }

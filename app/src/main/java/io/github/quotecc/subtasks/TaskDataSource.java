@@ -90,7 +90,7 @@ public class TaskDataSource {
 
     }
 
-    public void insertTask(Task t){
+    public long insertTask(Task t){
         ContentValues c = new ContentValues();
         c.put(DBHelper.COLUMN_NAME_ID, ""+t.getId());
         c.put(DBHelper.COLUMN_NAME_CONTENT,t.getContent());
@@ -99,7 +99,15 @@ public class TaskDataSource {
         c.put(DBHelper.COLUMN_NAME_PARENT, "" + t.getParent());
 
         long insertId = db.insert(DBHelper.TABLE_NAME,null,c);
+        return insertId;
 
+    }
+
+    public Task searchTask(int id){
+        String[] args = {id+""};
+        Cursor cursor = db.query(DBHelper.TABLE_NAME,allColumns,DBHelper.COLUMN_NAME_ID + " = ?", args, null,null, null);
+        cursor.moveToFirst();
+        return cursorToTask(cursor);
     }
 
     public void deleteTask(Task t){

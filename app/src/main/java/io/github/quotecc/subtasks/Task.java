@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -22,10 +23,11 @@ public class Task implements Comparable<Task> {
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd-yyyy 'at' hh:mm a");
 
     public Task(){}
-    public Task(String content, int id){ // a method for creating a task that simply has words in it, no actual content
+    public Task(String content, int id, int parent){ // a method for creating a task that simply has words in it, no actual content
         this.id = id;
+        due = new Date();
         this.content = content;
-        parent = -1;
+        parent = parent;
     }
 
     public Task(int id, String content, String due, String note, int parent){
@@ -96,7 +98,7 @@ public class Task implements Comparable<Task> {
     }
     @Override
     public String toString(){
-        return getContent();
+        return getContent() +"    " + getId();
     }
 
 
