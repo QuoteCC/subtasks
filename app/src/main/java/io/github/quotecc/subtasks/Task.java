@@ -27,7 +27,7 @@ public class Task implements Comparable<Task> {
         this.id = id;
         due = new Date();
         this.content = content;
-        parent = parent;
+        this.parent = parent;
     }
 
     public Task(int id, String content, String due, String note, int parent){

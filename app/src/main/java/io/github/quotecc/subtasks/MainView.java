@@ -48,6 +48,7 @@ public class MainView extends Fragment {
     public void onAttach(Context act){
         super.onAttach(act);
         actMain = act;
+        
 
     }
     @Override
@@ -127,7 +128,7 @@ public class MainView extends Fragment {
         Calendar c = Calendar.getInstance();
         int currPos = 0;
         int timeId = 0;
-        int parent = 0;
+        int parId = 0;
 
         class ViewHold{
             EditText txtEd;
@@ -149,7 +150,7 @@ public class MainView extends Fragment {
         public custAdapt(ArrayList<Task> tasks, Context context, int par){
             super(context, R.layout.lv_custom, tasks);
             this.context = context;
-            parent = par;
+            parId = par;
             layInf = LayoutInflater.from(context);
             //layInf = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             currTasks = tasks;
@@ -301,7 +302,8 @@ public class MainView extends Fragment {
                             shrE.putInt("curId", got+1);
                             shrE.apply();
 
-                            currTasks.add(new Task(addT, got+1, parent));
+                            Log.d("ParId Standard", parId+"");
+                            currTasks.add(new Task(addT, got+1, parId));
                             long l = tds.insertTask(currTasks.get(pos));
                             Log.d("Insert ID", l + "");
                             tds.close();
@@ -410,9 +412,12 @@ public class MainView extends Fragment {
                     String s = hold.dataStor.getText().toString();
                     int id = Integer.parseInt(s);
                     Task t = findTaskById(id);
+                    Log.d("TaskDelete", t.toString() + "   " + id);
                     int pos = currTasks.indexOf(t);
                     if (pos != currTasks.size()-1) {
-                        currTasks.remove(t);
+                        Log.d("CurTasksB", currTasks.toString());
+                        currTasks.remove(pos);
+                        Log.d("CurTasksA", currTasks.toString());
                         tds.open();
                         tds.deleteTask(t);
                         tds.close();
@@ -429,7 +434,7 @@ public class MainView extends Fragment {
                     return t;
                 }
             }
-            return new Task(addT, -1, parent);
+            return new Task(addT, -1, parId);
 
         }
 
